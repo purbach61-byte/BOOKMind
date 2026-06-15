@@ -23,7 +23,6 @@ def recommend():
     preferred_genres = request.form.getlist("genres")
     user_name = request.form.get("user_name", "Reader").strip() or "Reader"
     
-    # SAFE RATING CHECK: This stops the empty-box crash!
     raw_rating = request.form.get("min_rating")
     if raw_rating and raw_rating.strip():
         try:
