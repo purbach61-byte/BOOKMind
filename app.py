@@ -1,15 +1,14 @@
+import os
+import sqlite3
 from flask import Flask, render_template, request
-from pymongo import MongoClient
-
 app = Flask(__name__)
-
-# ─── MongoDB Connection ────────────────────────────────────────────────────────
-# Replace with your MongoDB URI if using Atlas:
-# client = MongoClient("mongodb+srv://<user>:<pass>@cluster.mongodb.net/")
-client = MongoClient("mongodb://localhost:27017/")
-db = client["book_recommender"]
-books_collection = db["books"]
-
+# This handles the absolute file path so Render can find books.db
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
+DB_PATH = os.path.join(BASE_DIR, 'books.db')
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # To access columns by name
+    return conn
 # ─── Seed sample books if DB is empty ─────────────────────────────────────────
 def seed_books():
     # Always drop and recreate for fresh data
@@ -134,7 +133,21 @@ def recommend():
     preferred_genres = request.form.getlist("genres")   # multi-select checkboxes
     min_rating       = float(request.form.get("min_rating", 3.0))
     user_name        = request.form.get("user_name", "Reader").strip() or "Reader"
+    conn = get_db_connection()
+    if preferred_genres:
+        #Dynamically matches books that fit any chosen genre and meet the minimum rating requirement
+        placeholders = ','.join('?' for _ in preferred_genres)
+        query = f"SELECT * FROM books WHERE genre IN ({placeholders}) AND rating >= ?"
+        params = preferred_genres + [min_rating]
+        recommendations = conn.execute(query, params).fetchall()
+        else:
+            # Fallback if no genre checkbox was checked
+            books = conn.execute("SELECT * FROM books WHERE rating >= ?", (min_rating,)).fetchall()
 
+conn.close()
+return render_template(
+    "results.html",
+    books=books, user_name=user_name)
     recommendations  = get_recommendations(preferred_genres, min_rating)
 
     return render_template(
@@ -148,7 +161,9 @@ def recommend():
 
 @app.route("/all-books")
 def all_books():
-    books = list(books_collection.find({}, {"_id": 0}))
+    conn = get_db_connection()
+    books = conn.execute("SELECT * FROM books").fetchall()
+    conn.close()
     return render_template("all_books.html", books=books)
 
 # ─── Entry Point ──────────────────────────────────────────────────────────────
