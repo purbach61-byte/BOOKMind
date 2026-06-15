@@ -4,7 +4,6 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-# Dynamically finds the folder path on Render's server so books.db is found
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'books.db')
 
@@ -22,8 +21,17 @@ def index():
 @app.route("/recommend", methods=["POST"])
 def recommend():
     preferred_genres = request.form.getlist("genres")
-    min_rating = float(request.form.get("min_rating", 3.0))
     user_name = request.form.get("user_name", "Reader").strip() or "Reader"
+    
+    # SAFE RATING CHECK: This stops the empty-box crash!
+    raw_rating = request.form.get("min_rating")
+    if raw_rating and raw_rating.strip():
+        try:
+            min_rating = float(raw_rating)
+        except ValueError:
+            min_rating = 3.0
+    else:
+        min_rating = 3.0
 
     conn = get_db_connection()
     
