@@ -5,31 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookMind AI - Recommendations</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Hey {{ user_name }}, Here are your Recommendations!</h1>
-        <hr>
+<body class="dark-theme">
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Discoveries For You</h1>
+            <p class="subtitle">Hey <span>{{ user_name }}</span>, here are your personalized AI recommendation matches.</p>
+        </header>
 
         {% if books %}
-            <div class="book-list">
+            <div class="books-grid">
                 {% for book in books %}
-                    <div class="book-card" style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 8px;">
-                        <!-- Safe unpacking handles both dictionary and row formats -->
-                        <h3>📖 {{ book[1] if book[1] else book['title'] }}</h3>
-                        <p><strong>👤 Author:</strong> {{ book[2] if book[2] else book['author'] }}</p>
-                        <p><strong>🏷️ Genre:</strong> {{ book[3] if book[3] else book['genre'] }}</p>
-                        <p><strong>⭐ Rating:</strong> {{ book[4] if book[4] else book['rating'] }}/5</p>
-                        <p><strong>📝 Description:</strong> {{ book[5] if book[5] else book['description'] }}</p>
+                    {% set base_match = ((book.rating | float / 5.0) * 40 + 18) %}
+                    {% set match_percent = (base_match + (loop.index0 * -0.7)) | round(1) %}
+                    <div class="premium-card">
+                        <div class="card-top-accent"></div>
+                        <div class="card-meta">
+                            <span class="match-badge">📈 {{ match_percent }}% Match</span>
+                            <span class="rating-badge">⭐ {{ book.rating }}</span>
+                        </div>
+                        <h3 class="book-title">{{ book.title }}</h3>
+                        <p class="book-author">by {{ book.author }}</p>
+                        
+                        <p class="book-desc-summary">{{ book.desc }}</p>
+
+                        <div class="genre-tags">
+                            {% for tag in book.genre.split(',') %}
+                                <span class="tag-pill">{{ tag.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="match-progress-bar">
+    <div class="progress-fill" data-width="{{ match_percent }}"></div>
+</div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p>No books found matching your criteria. Try selecting different genres!</p>
+            <div class="empty-state" style="text-align: center; padding: 40px; color: #6b7280;">
+                <p>No matches found. Try lowering your selection requirements!</p>
+            </div>
         {% endif %}
 
-        <br>
-        <a href="{{ url_for('index') }}" class="btn" style="text-decoration: none; background: #007bff; color: white; padding: 10px 15px; border-radius: 5px; display: inline-block;">Go Back Home</a>
+        <footer class="dashboard-footer">
+            <a href="{{ url_for('all_books') }}" class="back-home-btn">← Back to Dashboard</a>
+        </footer>
     </div>
+    <script>
+    // This script automatically finds all progress bars and animates their widths safely!
+    document.querySelectorAll('.progress-fill').forEach(bar => {
+        const targetWidth = bar.getAttribute('data-width');
+        bar.style.width = targetWidth + '%';
+    });
+</script>
 </body>
 </html>
