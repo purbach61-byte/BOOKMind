@@ -11,11 +11,11 @@
     <div class="dashboard-container">
         <nav class="nav-links">
             <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('all_books') }}">View All Books Collection</a>
+            <a href="all_books">View All Books Collection</a>
         </nav>
 
         <header class="dashboard-header">
-            <h1>⚙️ Set Your Preferences</h1>
+            <h1>Find Books You'll Love</h1>
             <p class="subtitle">Select your targets and let the engine find matching references.</p>
         </header>
 
@@ -28,7 +28,7 @@
             <div class="input-group">
                 <label>Preferred Genres <span style="font-size:0.8rem; color:#6b7280; font-weight:400;">(Select multiple)</span></label>
                 <div class="genre-selector-container">
-                    {% set unique_genres = ['Fiction', 'Dystopian', 'Romance', 'Mystery', 'Tech', 'Sci-Fi', 'Thriller', 'Technology', 'Programming', 'History', 'Science', 'Fantasy', 'Adventure', 'Self-Help', 'Psychology', 'Philosophy'] %}
+                    {% set unique_genres = ['Fiction', 'Romance', 'Mystery', 'Sci-Fi', 'Thriller', 'History', 'Science', 'Fantasy', 'Adventure', 'Self-Help'] %}
                     {% for item in unique_genres %}
                         <input type="checkbox" name="genres" value="{{ item }}" id="genre-{{ item }}" class="genre-checkbox">
                         <label for="genre-{{ item }}" class="genre-label">{{ item }}</label>
